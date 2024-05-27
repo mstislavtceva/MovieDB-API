@@ -1,9 +1,13 @@
 import React, { Component } from 'react';
 import { Layout } from 'antd';
 import { Content } from 'antd/es/layout/layout';
+import { Offline, Online } from 'react-detect-offline';
 
 import FilmList from '../FilmList';
 import MovieService from '../../services/MovieService';
+import Spinner from '../Spinner';
+import ErrorMessage from '../ErrorMessage';
+import ErrorInternet from '../ErrorInternet';
 
 import './App.css';
 
@@ -13,6 +17,8 @@ export default class App extends Component {
 
     this.state = {
       movies: [],
+      loading: true,
+      error: false,
     };
 
     this.movieService = new MovieService();
@@ -21,10 +27,9 @@ export default class App extends Component {
       maxWidth: '1010px',
       minWidth: '420px',
       backgroundColor: '#ffffff',
-      // backgroundColor: 'green',
     };
 
-    this.updateMovies('do');
+    this.updateMovies('da');
 
     // eslint-disable-next-line arrow-body-style
     this.trimOverviewText = (text) => {
@@ -32,22 +37,41 @@ export default class App extends Component {
     };
 
     this.onMoviesLoaded = (movies) => {
-      this.setState({ movies });
+      this.setState({ movies, loading: false });
+    };
+
+    this.onError = () => {
+      this.setState({
+        error: true,
+        loading: false,
+      });
     };
   }
 
   updateMovies(title) {
-    this.movieService.getMovies(title).then((movies) => this.onMoviesLoaded(movies));
+    this.movieService
+      .getMovies(title)
+      .then((movies) => this.onMoviesLoaded(movies))
+      .catch(() => {
+        this.onError();
+      });
   }
 
   render() {
-    const { movies } = this.state;
+    const { movies, loading, error } = this.state;
 
     return (
       <Layout style={this.layoutStyle}>
         <Content>
           <section className="movie__container">
-            <FilmList filmList={movies} shortText={this.trimOverviewText} />
+            <Online>
+              {error ? <ErrorMessage /> : null}
+              {loading ? <Spinner /> : null}
+              {!(loading || error) ? <FilmList filmList={movies} shortText={this.trimOverviewText} /> : null}
+            </Online>
+            <Offline>
+              <ErrorInternet />
+            </Offline>
           </section>
         </Content>
       </Layout>

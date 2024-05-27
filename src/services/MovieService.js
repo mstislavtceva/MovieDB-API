@@ -8,27 +8,42 @@ export default class MovieService {
     this._query = '&include_adult=false&language=en-US&page=1';
   }
 
+  // eslint-disable-next-line consistent-return
   async getMovies(title) {
-    const response = await fetch(`${this._apiUrl}?query=${title}${this._query}`, {
-      method: 'GET',
-      headers: {
-        accept: 'application/json',
-        Authorization: `Bearer ${this._apiKey}`,
-      },
-    });
-    if (!response.ok) {
-      throw new Error('Couldnt fetch!!');
+    try {
+      const response = await fetch(`${this._apiUrl}?query=${title}${this._query}`, {
+        method: 'GET',
+        headers: {
+          accept: 'application/json',
+          Authorization: `Bearer ${this._apiKey}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Couldnt fetch!!');
+      }
+
+      if (response.status === 402) {
+        throw new Error('VPN!');
+      }
+
+      const movies = await response.json();
+
+      // eslint-disable-next-line arrow-body-style
+      return movies.results.map((movie) => {
+        return {
+          id: movie.id,
+          title: movie.title,
+          releaseDate: movie.release_date,
+          overview: movie.overview,
+          posterPath: movie.poster_path,
+        };
+      });
+    } catch (err) {
+      if (err.message === 'Failed to fetch') {
+        throw err;
+      }
+      throw err;
     }
-    const movies = await response.json();
-    // eslint-disable-next-line arrow-body-style
-    return movies.results.map((movie) => {
-      return {
-        id: movie.id,
-        title: movie.title,
-        releaseDate: movie.release_date,
-        overview: movie.overview,
-        posterPath: movie.poster_path,
-      };
-    });
   }
 }

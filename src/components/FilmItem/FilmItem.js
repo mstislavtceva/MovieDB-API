@@ -14,6 +14,20 @@ export default class FilmItem extends Component {
     this.filmTitle = {
       lineHeight: '23.75px',
     };
+
+    this.formatMyDate = (date) => {
+      if (!date) {
+        return 'Дата не найдена';
+      }
+
+      try {
+        return format(new Date(date), 'dd.MM.yyyy'); // Форматируем дату
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error('Invalid date format:', error);
+        return ''; // Возвращаем пустую строку в случае ошибки
+      }
+    };
   }
 
   render() {
@@ -35,7 +49,7 @@ export default class FilmItem extends Component {
               {film.title}
             </Title>
             <Text type="secondary" style={{ marginBottom: '5px' }}>
-              {format(new Date(film.releaseDate), 'MMMM d, y')}
+              {this.formatMyDate(film.releaseDate)}
             </Text>
             <span style={{ marginBottom: '5px' }}>
               <Text keyboard>Demo</Text>
