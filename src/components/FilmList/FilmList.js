@@ -10,7 +10,7 @@ export default class FilmList extends Component {
     const { filmList, shortText } = this.props;
 
     return (
-      <Flex wrap justify="space-around" align="center">
+      <Flex wrap justify="space-between" align="center">
         {filmList.map((film) => (
           <li key={film.id}>
             <FilmItem film={film} shortText={shortText} />

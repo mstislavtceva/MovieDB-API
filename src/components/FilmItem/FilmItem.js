@@ -21,7 +21,7 @@ export default class FilmItem extends Component {
       }
 
       try {
-        return format(new Date(date), 'dd.MM.yyyy'); // Форматируем дату
+        return format(new Date(date), 'MMMM dd, yyyy'); // Форматируем дату
       } catch (error) {
         // eslint-disable-next-line no-console
         console.error('Invalid date format:', error);

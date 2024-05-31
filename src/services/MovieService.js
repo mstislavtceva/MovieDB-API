@@ -5,13 +5,13 @@ export default class MovieService {
 
     this._apiUrl = 'https://api.themoviedb.org/3/search/movie';
 
-    this._query = '&include_adult=false&language=en-US&page=1';
+    this._query = '&include_adult=false&language=en-US&page=';
   }
 
   // eslint-disable-next-line consistent-return
-  async getMovies(title) {
+  async getMovies(title, page) {
     try {
-      const response = await fetch(`${this._apiUrl}?query=${title}${this._query}`, {
+      const response = await fetch(`${this._apiUrl}?query=${title}${this._query}${page}`, {
         method: 'GET',
         headers: {
           accept: 'application/json',
@@ -39,6 +39,35 @@ export default class MovieService {
           posterPath: movie.poster_path,
         };
       });
+    } catch (err) {
+      if (err.message === 'Failed to fetch') {
+        throw err;
+      }
+      throw err;
+    }
+  }
+
+  async getTotalPages(title, page) {
+    try {
+      const response = await fetch(`${this._apiUrl}?query=${title}${this._query}${page}`, {
+        method: 'GET',
+        headers: {
+          accept: 'application/json',
+          Authorization: `Bearer ${this._apiKey}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Couldnt fetch!!');
+      }
+
+      if (response.status === 402) {
+        throw new Error('Something wrong');
+      }
+
+      const movies = await response.json();
+
+      return movies.total_pages;
     } catch (err) {
       if (err.message === 'Failed to fetch') {
         throw err;
