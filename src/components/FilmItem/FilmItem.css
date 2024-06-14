@@ -7,12 +7,12 @@
 }
 
 .film-card__image {
-  width: 45%;
+  width: 41%;
 }
 
 .film-card__poster {
   object-fit: fill;
-  width: 200px;
+  width: 185px;
   height: 279px;
 }
 
@@ -24,5 +24,17 @@
 
 .film-card__content {
   padding: 12px;
-  width: 55%;
+  width: 62%;
+}
+
+.film-card__rating {
+  width: 30px;
+  height: 30px;
+  background-color: #fff;
+  border: 2px solid #e9d100;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 13px;
 }

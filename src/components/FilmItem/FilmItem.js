@@ -2,18 +2,16 @@ import { Component } from 'react';
 import { Typography, Flex } from 'antd';
 import { format } from 'date-fns';
 
+import StarRate from '../StarRate';
+
 import './FilmItem.css';
 
 import noPhoto from './ifNoPhoto.jpg';
 
 // eslint-disable-next-line react/prefer-stateless-function
 export default class FilmItem extends Component {
-  constructor() {
-    super();
-
-    this.filmTitle = {
-      lineHeight: '23.75px',
-    };
+  constructor(props) {
+    super(props);
 
     this.formatMyDate = (date) => {
       if (!date) {
@@ -32,7 +30,18 @@ export default class FilmItem extends Component {
 
   render() {
     const { Title, Text } = Typography;
-    const { film, shortText } = this.props;
+    const { film, shortText, onSetRatedMovies, genres } = this.props;
+
+    const genresList = genres.filter((item) => film.genres.includes(item.id));
+
+    const colorCircle =
+      film.vote < 4 && film.vote >= 0
+        ? '#E90000'
+        : film.vote > 3 && film.vote < 6
+          ? '#E97E00'
+          : film.vote > 5 && film.vote < 8
+            ? '#E9D100'
+            : '#66E900';
 
     return (
       <article className="film-card">
@@ -44,18 +53,34 @@ export default class FilmItem extends Component {
               className="film-card__poster"
             />
           </div>
-          <Flex vertical className="film-card__content">
-            <Title level={4} style={this.filmTitle} className="film-card__title">
-              {film.title}
-            </Title>
-            <Text type="secondary" style={{ marginBottom: '5px' }}>
-              {this.formatMyDate(film.releaseDate)}
-            </Text>
-            <span style={{ marginBottom: '5px' }}>
-              <Text keyboard>Demo</Text>
-              <Text keyboard>Demo</Text>
-            </span>
+          <Flex vertical gap={7} className="film-card__content">
+            <Flex justify="space-between">
+              <Title
+                level={4}
+                style={{ marginBottom: '0px', lineHeight: '20px', width: '80%' }}
+                className="film-card__title"
+              >
+                {film.title}
+              </Title>
+              <div style={{ borderColor: colorCircle }} className="film-card__rating">
+                {film.vote}
+              </div>
+            </Flex>
+            <Text type="secondary">{this.formatMyDate(film.releaseDate)}</Text>
+            {/* <span> */}
+            <Flex wrap>
+              {/* eslint-disable-next-line arrow-body-style */}
+              {genresList.map((genre) => {
+                return (
+                  <li key={genre.id}>
+                    <Text keyboard>{genre.name}</Text>
+                  </li>
+                );
+              })}
+            </Flex>
+            {/* </span> */}
             <Text>{shortText(film.overview)}</Text>
+            <StarRate idFilm={film.id} onSetRating={onSetRatedMovies} rate={film.rate} />
           </Flex>
         </Flex>
       </article>

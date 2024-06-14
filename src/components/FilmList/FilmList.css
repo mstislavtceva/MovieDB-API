@@ -1,4 +1,7 @@
 li {
-  margin-bottom: 37px;
   list-style-type: none;
+}
+
+.ant-rate li {
+  margin-bottom: 37px;
 }
