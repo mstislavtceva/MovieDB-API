@@ -2,7 +2,8 @@ import React, { Component } from 'react';
 import { Layout, Result } from 'antd';
 import { Content } from 'antd/es/layout/layout';
 import { SmileOutlined } from '@ant-design/icons';
-import { Offline, Online } from 'react-detect-offline';
+// import { Offline, Online } from 'react-detect-offline';
+import { Detector } from 'react-detect-offline';
 import { debounce } from 'lodash';
 
 import Header from '../Header';
@@ -28,7 +29,9 @@ export default class App extends Component {
       noResults: false,
       title: '',
       currentPage: 1,
+      currentRatedPage: 1,
       totalResults: 1,
+      totalRatedResults: 1,
       guestSessionId: '',
       tabPane: 'Search',
     };
@@ -44,7 +47,7 @@ export default class App extends Component {
 
     this.contetStyle = {
       maxWidth: '938px',
-      margin: '0 auto',
+      // margin: '0 auto',
     };
 
     // eslint-disable-next-line arrow-body-style
@@ -57,6 +60,7 @@ export default class App extends Component {
     this.getTotalCountPages = this.getTotalCountPages.bind(this);
     this.onChangeValue = this.onChangeValue.bind(this);
     this.onChangePage = this.onChangePage.bind(this);
+    this.onChangeRatedPage = this.onChangeRatedPage.bind(this);
     this.setRatedMovies = this.setRatedMovies.bind(this);
     this.getRatedMovies = this.getRatedMovies.bind(this);
     this.changeTab = this.changeTab.bind(this);
@@ -74,7 +78,7 @@ export default class App extends Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
-    const { title, currentPage, tabPane } = this.state;
+    const { title, currentPage, currentRatedPage, tabPane, error } = this.state;
 
     if (prevState.title !== title) {
       this.setState({
@@ -85,7 +89,11 @@ export default class App extends Component {
 
     if (prevState.currentPage !== currentPage) {
       this.searchNewMovies(title, currentPage);
-      window.scrollTo(0, 0);
+      // window.scrollTo(0, 0);
+    }
+
+    if (prevState.currentRatedPage !== currentRatedPage) {
+      this.getRatedMovies();
     }
 
     if (prevState.tabPane !== tabPane && tabPane === 'Rated') {
@@ -96,12 +104,19 @@ export default class App extends Component {
     }
 
     if (prevState.tabPane !== tabPane && tabPane === 'Search') {
-      this.setState({
-        tabPane: 'Search',
-      });
-      // this.searchNewMovies(title, currentPage);
-      this.getTotalCountPages(title, currentPage);
-      this.updateRatingFilm();
+      if (error) {
+        this.setState({
+          tabPane: 'Search',
+          error: false,
+        });
+        this.updateMovies(title, currentPage);
+      } else {
+        this.setState({
+          tabPane: 'Search',
+        });
+        this.getTotalCountPages(title, currentPage);
+        this.updateRatingFilm();
+      }
     }
   }
 
@@ -122,6 +137,12 @@ export default class App extends Component {
   onChangePage(page) {
     this.setState({
       currentPage: page,
+    });
+  }
+
+  onChangeRatedPage(page) {
+    this.setState({
+      currentRatedPage: page,
     });
   }
 
@@ -174,14 +195,14 @@ export default class App extends Component {
   }
 
   getRatedMovies() {
-    const { guestSessionId } = this.state;
+    const { guestSessionId, currentRatedPage } = this.state;
 
     this.setState({
       loading: true,
     });
 
     this.movieService
-      .getRating(guestSessionId)
+      .getRating(guestSessionId, currentRatedPage)
       .then((list) => {
         // eslint-disable-next-line arrow-body-style
         const newList = list.results.map((movie) => {
@@ -199,9 +220,9 @@ export default class App extends Component {
 
         this.setState({
           ratedMovies: newList,
-          totalResults: list.total_results,
+          totalRatedResults: list.total_pages,
           loading: false,
-          noResults: list.length === 0,
+          noResults: list.results.length === 0,
         });
       })
       .catch(() => {
@@ -210,10 +231,10 @@ export default class App extends Component {
   }
 
   updateRatingFilm() {
-    const { guestSessionId, movies } = this.state;
+    const { guestSessionId, movies, currentRatedPage } = this.state;
 
     this.movieService
-      .getRating(guestSessionId)
+      .getRating(guestSessionId, currentRatedPage)
       .then((list) => {
         // eslint-disable-next-line arrow-body-style
         const newMovies = movies.map((movie) => {
@@ -260,8 +281,20 @@ export default class App extends Component {
   }
 
   render() {
-    const { movies, ratedMovies, loading, error, noResults, title, currentPage, totalResults, tabPane, genres } =
-      this.state;
+    const {
+      movies,
+      ratedMovies,
+      loading,
+      error,
+      noResults,
+      title,
+      currentPage,
+      currentRatedPage,
+      totalResults,
+      totalRatedResults,
+      tabPane,
+      genres,
+    } = this.state;
 
     const search = tabPane === 'Search' ? <SearchPanel title={title} changeValue={this.onChangeValue} /> : null;
     const spinner = loading ? <Spinner /> : null;
@@ -292,12 +325,28 @@ export default class App extends Component {
       ) : null;
 
     const errorMessage = error ? (
-      <Result status="error" title="Упс, ошибочка вышла!" subTitle="Попробуйте включить VPN!" />
+      <Result status="error" title="Упс, ошибочка вышла!" subTitle="Здесь пока ничего нет:( Может включить VPN?" />
     ) : null;
 
-    const pagPanel = !noResults ? (
-      <PaginationPanel current={currentPage} total={totalResults} onChangePage={this.onChangePage} />
-    ) : null;
+    const pagPanel = (
+      <PaginationPanel
+        current={currentPage}
+        total={totalResults * 10}
+        pageSize={10}
+        showSizeChanger={false}
+        onChangePage={this.onChangePage}
+      />
+    );
+    const pagPanelRated = (
+      <PaginationPanel
+        current={currentRatedPage}
+        total={totalRatedResults * 10}
+        pageSize={20}
+        showSizeChanger={false}
+        hideOnSinglePage
+        onChangePage={this.onChangeRatedPage}
+      />
+    );
 
     return (
       <APIProvider value={genres}>
@@ -307,20 +356,47 @@ export default class App extends Component {
               <Header changeTab={this.changeTab} />
               {search}
             </div>
-            <div className="movie__container">
-              <Online>
-                {errorMessage}
-                {spinner}
-                {filmCards}
-                {ratedFilmCards}
-                {notFound}
-                {startedResult}
-              </Online>
-              <Offline>
-                <Result status="500" title="Кажется, нет интернета:(" subTitle="Проверь свое соединение!" />
-              </Offline>
-            </div>
-            <div className="movie__pagination">{pagPanel}</div>
+
+            <Detector
+              // eslint-disable-next-line arrow-body-style
+              render={({ online }) => {
+                return (
+                  <div className="movie__container">
+                    {online ? (
+                      errorMessage
+                    ) : (
+                      <Result status="500" title="Кажется, нет интернета:(" subTitle="Проверь свое соединение!" />
+                    )}
+                    {online ? (
+                      spinner
+                    ) : (
+                      <Result status="500" title="Кажется, нет интернета:(" subTitle="Проверь свое соединение!" />
+                    )}
+                    {online ? (
+                      filmCards
+                    ) : (
+                      <Result status="500" title="Кажется, нет интернета:(" subTitle="Проверь свое соединение!" />
+                    )}
+                    {online ? (
+                      ratedFilmCards
+                    ) : (
+                      <Result status="500" title="Кажется, нет интернета:(" subTitle="Проверь свое соединение!" />
+                    )}
+                    {online ? (
+                      notFound
+                    ) : (
+                      <Result status="500" title="Кажется, нет интернета:(" subTitle="Проверь свое соединение!" />
+                    )}
+                    {online ? (
+                      startedResult
+                    ) : (
+                      <Result status="500" title="Кажется, нет интернета:(" subTitle="Проверь свое соединение!" />
+                    )}
+                  </div>
+                );
+              }}
+            />
+            <div className="movie__pagination">{tabPane === 'Search' ? pagPanel : pagPanelRated}</div>
           </Content>
         </Layout>
       </APIProvider>

@@ -45,7 +45,7 @@ export default class FilmItem extends Component {
 
     return (
       <article className="film-card">
-        <Flex>
+        <div className="film-card__container">
           <div className="film-card__image">
             <img
               alt={film.title}
@@ -53,7 +53,7 @@ export default class FilmItem extends Component {
               className="film-card__poster"
             />
           </div>
-          <Flex vertical gap={7} className="film-card__content">
+          <div className="film-card__content">
             <Flex justify="space-between">
               <Title
                 level={4}
@@ -67,7 +67,6 @@ export default class FilmItem extends Component {
               </div>
             </Flex>
             <Text type="secondary">{this.formatMyDate(film.releaseDate)}</Text>
-            {/* <span> */}
             <Flex wrap>
               {/* eslint-disable-next-line arrow-body-style */}
               {genresList.map((genre) => {
@@ -78,11 +77,14 @@ export default class FilmItem extends Component {
                 );
               })}
             </Flex>
-            {/* </span> */}
-            <Text>{shortText(film.overview)}</Text>
-            <StarRate idFilm={film.id} onSetRating={onSetRatedMovies} rate={film.rate} />
-          </Flex>
-        </Flex>
+            <div className="film-card__bottom">
+              <Text>{shortText(film.overview)}</Text>
+              <div className="film-card__star-rate">
+                <StarRate idFilm={film.id} onSetRating={onSetRatedMovies} rate={film.rate} />
+              </div>
+            </div>
+          </div>
+        </div>
       </article>
     );
   }

@@ -67,6 +67,7 @@ export default class MovieService {
       }
 
       const movies = await response.json();
+
       return movies.total_pages;
     } catch (err) {
       if (err.message === 'Failed to fetch') {
@@ -156,9 +157,9 @@ export default class MovieService {
     }
   }
 
-  async getRating(sessionId) {
+  async getRating(sessionId, page) {
     try {
-      const url = `${this._apiBaseUrl}guest_session/${sessionId}/rated/movies?api_key=${this._apiKey}&language=en-US&page=1&sort_by=created_at.asc`;
+      const url = `${this._apiBaseUrl}guest_session/${sessionId}/rated/movies?api_key=${this._apiKey}&language=en-US&page=${page}&sort_by=created_at.asc`;
 
       const response = await fetch(url, {
         method: 'GET',
@@ -174,7 +175,6 @@ export default class MovieService {
 
       const ratedMovies = await response.json();
 
-      // eslint-disable-next-line arrow-body-style
       return ratedMovies;
     } catch (err) {
       if (err.message === 'Failed to fetch') {
